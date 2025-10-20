@@ -1,14 +1,33 @@
+# Compilador y opciones
 CC = gcc
-CFLAGS = -Wall -Werror
+CFLAGS = -Wall -Wextra
 
-SRCFILES = p0.c firstshellfunctions.c filefunctions.c list.c
+# Archivos fuente y objeto
+SRCS = p0.c list.c filefunctions.c firstshellfunctions.c
+OBJS = $(SRCS:.c=.o)
 
-p0: $(SRCFILES)
-	$(CC) $(CFLAGS) -o p0 $(SRCFILES)
+# Nombre del ejecutable
+TARGET = a.out
 
+# Regla principal
+all: $(TARGET)
+
+# Enlazado
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+
+# Compilación individual
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Limpieza
 clean:
-	rm -f p0
+	rm -f $(OBJS)
 
-.PHONY: clean
+fclean: clean
+	rm -f $(TARGET) a.out
 
+rebuild: fclean all
+
+.PHONY: all clean fclean rebuild
 
