@@ -1,22 +1,23 @@
 /*
     AUTOR 1: Alejandro Suárez García  a.suarez4@udc.es
-    AUTOR 2: 
+    AUTOR 2: Iago Bescansa Alcoba  iago.alcoba@udc.es
     GRUPO: 1.3
 */
 
 
 #include "firstshellfunctions.h"
+#include "list.h"
 
 /*Muestra los nombres y logins*/
 void authors(char *tr[]) {
     if (tr[1] == NULL) {
-        printf("Alejandro Suárez  y a.suarez4@udc.es\n");
+        printf("Alejandro Suárez, a.suarez4@udc.es\nIago Bescansa Alcoba, iago.alcoba@udc.es\n");
     } else {
         if (strcmp(tr[1], "-l") == 0) {
-            printf("a.suarez4@udc.es \n");
+            printf("a.suarez4@udc.es \niago.alcoba@udc.es\n");
         }
         if (strcmp(tr[1], "-n") == 0) {
-            printf("Alejandro Suárez García y \n");
+            printf("Alejandro Suárez García \nIago Bescansa Alcoba\n");
         }
     }
 }
@@ -44,23 +45,20 @@ void date(char *tr[]) {
     int day = info->tm_mday, mon = info->tm_mon + 1, year = info->tm_year + 1900;
     int hour = info->tm_hour, min = info->tm_min, sec = info->tm_sec;
 
+    // ---- CASOS ----
     if (strcmp(tr[0], "date") == 0 && tr[1] == NULL) {
         // "date" → fecha y hora
         printf("%02d/%02d/%04d\n", day, mon, year);
         printf("%02d:%02d:%02d\n", hour, min, sec);
-
-    } else if (strcmp(tr[0], "date") == 0 && tr[1] != NULL && strcmp(tr[1], "-d") == 0) {
+    } else if (strcmp(tr[0], "date") == 0 && strcmp(tr[1], "-d") == 0) {
         // "date -d" → solo fecha
         printf("%02d/%02d/%04d\n", day, mon, year);
-
-    } else if (strcmp(tr[0], "date") == 0 && tr[1] != NULL && strcmp(tr[1], "-t") == 0) {
+    } else if (strcmp(tr[0], "date") == 0 && strcmp(tr[1], "-t") == 0) {
         // "date -t" → solo hora
         printf("%02d:%02d:%02d\n", hour, min, sec);
-
     } else if (strcmp(tr[0], "hour") == 0 && tr[1] == NULL) {
         // "hour" → solo hora
         printf("%02d:%02d:%02d\n", hour, min, sec);
-
     } else {
         printf("Uso: date [-d|-t] | hour\n");
     }
@@ -111,9 +109,7 @@ void help(char *tr[]) {
             {"getpid",      "[-p]   Muestra el pid del shell o del proceso padre"},
             {"chdir",    "[dir]    Muestra el directorio actual o cambia de directorio"},
             {"date",     "[hour|-t|-d]      Muestra la fecha y hora actual,solo la hora o solo la fecha"},
-            {"historic",     "   Muestra el historial "},
-            {"historic",     "[N|-N] [-clear|-count]  Muestra el historial, el comando N o los últimos -N comandos. "
-                             "Se puede eliminar el historial o ver el numero de comandos usados "},
+            {"historic",     "[N|-N] [-clear|-count]  Muestra el historial, el comando N o los últimos -N comandos. Se puede eliminar el historial o ver el numero de comandos usados "},
             {"comand",   "N   Repite el N comando del historial de comandos"},
             {"open",     "[file] mode       Abre un archivo en un determinado mode"},
             {"close",    "[df]     Cierra un archivo"},
@@ -160,7 +156,9 @@ void printNComands(tList L, int n) {
     n = abs(n);
     for (int i = 1; i <= n; ++i) { //bucle que itera en la lista hasta n
         if (p == NULL) { break; } //si llega a final de lista sale de bucle
-        printf("%d: %s", i, p->it);
+        if (i == n) {
+            printf("%d: %s", i, p->it);
+        }
         p = p->next; //avanza al siguiente nodo
     }
 }
@@ -216,8 +214,7 @@ void hist(char *tr[], tList *L) {
 void listarFicherosAbiertos(int numeroFicheros, struct fichab tablaFicheros[]) {
     for (int i = 0; i < numeroFicheros - 1; i++) { //bucle que ordena la tabla de archivos
         for (int j = 0; j < numeroFicheros - 1 - i; j++) {
-            if (tablaFicheros[j].descrip >
-                tablaFicheros[j + 1].descrip) { //verifica si el descriptor actual es mayor que el siguiente descriptor
+            if (tablaFicheros[j].descrip > tablaFicheros[j + 1].descrip) { //verifica si el descriptor actual es mayor que el siguiente descriptor
                 struct fichab cambioPos = tablaFicheros[j]; //incializa struct que almacena contenido de posj
                 tablaFicheros[j] = tablaFicheros[j + 1]; //intercambia posiciones
                 tablaFicheros[j + 1] = cambioPos;
@@ -331,6 +328,7 @@ void Cmd_close(char *tr[], int *numeroFicheros, struct fichab tablaFicheros[]) {
         perror("Imposible cerrar descriptor");
     else {
         eliminarDeFicherosAbiertos(df, numeroFicheros, tablaFicheros); //si se cierra, lo elimina de la lista
+        printf("Archivo eliminado con éxito \n");
     }
 }
 

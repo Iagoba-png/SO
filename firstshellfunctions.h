@@ -1,20 +1,20 @@
 /*
-    AUTOR 1: Alejandro Suárez García  a.suarez4@udc.es
-    AUTOR 2: 
+AUTOR 1: Alejandro Suárez García  a.suarez4@udc.es
+    AUTOR 2: Iago Bescansa Alcoba iago.alcoba@udc.es
     GRUPO: 1.3
 */
 
 
-#ifndef P3_SO_FIRSTSHELLFUNCTIONS_H
-#define P3_SO_FIRSTSHELLFUNCTIONS_H
+#ifndef UNTITLED_FIRSTSHELLFUNCTIONS_H
+#define UNTITLED_FIRSTSHELLFUNCTIONS_H
 
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
 #include <sys/utsname.h>
 #include <fcntl.h>
-
 #include "list.h"
+
 
 #define MAX_COMANDOS 39
 #define MAX_FICHEROS 100
@@ -56,4 +56,4 @@ void listOpen(int numeroFicheros, struct fichab tablaFicheros[]);
 
 void parentProcess(int *numOpenCommands, int *numeroFicheros, struct fichab tablaFicheros[]);
 
-#endif //P3_SO_FIRSTSHELLFUNCTIONS_H
+#endif //UNTITLED_FIRSTSHELLFUNCTIONS_H
