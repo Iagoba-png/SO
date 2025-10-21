@@ -355,3 +355,85 @@ void Cmd_dup(char *tr[], int *numeroFicheros, struct fichab tablaFicheros[]) {
         anadirFicherosAbiertos(c, tablaFicheros[i].modo, duf, numeroFicheros, tablaFicheros); //lo agrega a la lista
     }
 }
+
+
+/*escribe una cadena en el archivo abierto con descriptor df*/
+void writestr(char *tr[], int *numeroFicheros, struct fichab tablaFicheros[]) {
+    if (tr[1] == NULL || tr[2] == NULL) {
+        perror("Uso: writestr <descriptor> <texto>");
+        return;
+    }
+
+    int df = atoi(tr[1]);  // descriptor real (como usa open/close)
+    int indice = -1;
+
+    // Buscar el descriptor real en la tabla
+    for (int i = 0; i < *numeroFicheros; i++) {
+        if (tablaFicheros[i].descrip == df) {
+            indice = i;
+            break;
+        }
+    }
+
+    if (indice == -1) {
+        perror("Descriptor no encontrado en tabla");
+        return;
+    }
+
+    // Construir la cadena completa a escribir
+    char buffer[1024] = "";
+    for (int i = 2; tr[i] != NULL; i++) {
+        strcat(buffer, tr[i]);
+        if (tr[i + 1] != NULL) strcat(buffer, " ");
+    }
+
+    // Escribir en el archivo
+    ssize_t bytes = write(df, buffer, strlen(buffer));
+    if (bytes == -1)
+        perror("Error al escribir en el archivo");
+    else
+        printf("Se escribieron %zd bytes en %s\n", bytes, tablaFicheros[indice].nombre);
+}
+
+
+void seek(char *tr[], int *numeroFicheros, struct fichab tablaFicheros[]) {
+    if (tr[1] == NULL || tr[2] == NULL || tr[3] == NULL) {
+        printf("Uso: seek <descriptor> <offset> <set|cur|end>\n");
+        return;
+    }
+
+    int df = atoi(tr[1]);
+    off_t offset = atol(tr[2]);
+    int referencia;
+
+    // Buscar el descriptor en la tabla para asegurarnos de que está abierto
+    int indice = -1;
+    for (int i = 0; i < *numeroFicheros; i++) {
+        if (tablaFicheros[i].descrip == df) {
+            indice = i;
+            break;
+        }
+    }
+
+    if (indice == -1) {
+        perror("Descriptor no encontrado en tabla");
+        return;
+    }
+
+    // Determinar tipo de referencia
+    if (strcmp(tr[3], "set") == 0) referencia = SEEK_SET;
+    else if (strcmp(tr[3], "cur") == 0) referencia = SEEK_CUR;
+    else if (strcmp(tr[3], "end") == 0) referencia = SEEK_END;
+    else {
+        printf("Referencia invalida. Use: set | cur | end\n");
+        return;
+    }
+
+    // Realizar el desplazamiento
+    off_t nueva_pos = lseek(df, offset, referencia);
+    if (nueva_pos == (off_t)-1) {
+        perror("Error al reposicionar el puntero");
+    } else {
+        printf("Nuevo offset en %s: %ld\n", tablaFicheros[indice].nombre, (long)nueva_pos);
+    }
+}

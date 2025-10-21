@@ -42,6 +42,8 @@ void chdirr(char *tr[]);
 
 void infosys(char *tr[]);
 
+void writestr(char *tr[], int *numeroFicheros, struct fichab tablaFicheros[]);
+
 void help(char *tr[]);
 
 void hist(char *tr[], tList *L);
@@ -51,6 +53,8 @@ void Cmd_open(char *tr[], int *numeroFicheros, struct fichab tablaFicheros[]);
 void Cmd_close(char *tr[], int *numeroFicheros, struct fichab tablaFicheros[]);
 
 void Cmd_dup(char *tr[], int *numeroFicheros, struct fichab tablaFicheros[]);
+
+void seek(char *tr[], int *numeroFicheros, struct fichab tablaFicheros[]);
 
 void listOpen(int numeroFicheros, struct fichab tablaFicheros[]);
 

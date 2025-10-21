@@ -89,6 +89,8 @@ void procesarEntrada(char *tr[], int i, tList *L, bool *fin, struct fichab tabla
         else if (strcmp(tr[0], "create") == 0) create(tr, numeroDirectorios, tablaDirectorios);
         else if (strcmp(tr[0], "delrec") == 0) delrec(tr);
         else if (strcmp(tr[0], "erase") == 0) erase(tr);
+        else if (strcmp(tr[0], "writestr") == 0) writestr(tr, numeroFicheros, tablaFicheros);
+        else if (strcmp(tr[0], "seek") == 0) seek(tr, numeroFicheros, tablaFicheros);
         else if (strcmp(tr[0], "exit") == 0 || strcmp(tr[0], "quit") == 0 || strcmp(tr[0], "bye") == 0) {
             *fin = true;
         }

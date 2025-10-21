@@ -19,6 +19,7 @@
 #include <dirent.h>
 #include <pwd.h>
 #include <grp.h>
+#include <stdlib.h>
 
 #define MAX_DIRECTORIOS 100
 
@@ -35,5 +36,7 @@ bool esDirectorioVacio(const char *path);
 void erase(char *tr[]);
 
 void delrec(char *tr[]);
+
+
 
 #endif //SO2025_2026_FILEFUNCTIONS_H

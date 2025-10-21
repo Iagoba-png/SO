@@ -94,7 +94,7 @@ void erase(char *tr[]) {
 void delrec(char *tr[]) {
     char cwd[1024];
     struct stat estadisticasarchdir; //struct para estadisticas de arch y dir
-    if (tr[1] == NULL) {  //si el comando solo es deltree:
+    if (tr[1] == NULL) {  //si el comando solo es delrec:
         if (getcwd(cwd, sizeof(cwd)) != NULL) printf("%s\n", cwd); //se obtiene el dir actual, si tiene exito se muestra
         else perror("Error al acceder al directorio");
         return;
@@ -111,7 +111,7 @@ void delrec(char *tr[]) {
                             struct dirent *entrada;
                             char cad[PATH_MAX] = "delrec";
                             while ((entrada = readdir(directorio)) !=
-                                   NULL) {  //Creo un String que sea otro comando deltree con el contenido del directorio a borrar
+                                   NULL) {  //Creo un String que sea otro comando delrec con el contenido del directorio a borrar
                                 if (strcmp(entrada->d_name, ".") != 0 &&
                                     strcmp(entrada->d_name, "..") != 0) { //estos archivos no cuentan
                                     strcat(cad, " ");
@@ -130,7 +130,7 @@ void delrec(char *tr[]) {
                             }
                             closedir(directorio);
                             chdir(tr[i]);     //Entro en el directorio a borrar
-                            delrec(trozos);  //Hago deltree con todos los archivos de dentro del directorio
+                            delrec(trozos);  //Hago delREC con todos los archivos de dentro del directorio
                             chdir("../");     //Salgo del directorio ahora vacío
                             rec = true;
 
@@ -142,7 +142,7 @@ void delrec(char *tr[]) {
         } while (continuar);
         if (rec) {
             delrec(tr);
-        }//Si se ha borrado el interior de algún fichero se repite el deltree actual pero con los ficheros vacios
+        }//Si se ha borrado el interior de algún fichero se repite el delrec actual pero con los ficheros vacios
         else {
             i = 1;
             continuar = true;
@@ -173,4 +173,6 @@ void delrec(char *tr[]) {
 
     }
 }
+
+
 
