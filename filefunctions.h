@@ -27,6 +27,13 @@ struct dirab {
     char nombre[200];
 };
 
+typedef struct {
+    bool longFormat; // long | short
+    bool showLinks; // link | nolink
+    bool showHidden; // hid | nohid
+    int recursion; // 0 = norec, 1 = reca, 2 = recb
+} DirParams;
+
 void obtenerDirectorioActual();
 
 void create(char *tr[], int *numerodirectorios, struct dirab tabladirectorios[]);
@@ -36,6 +43,10 @@ bool esDirectorioVacio(const char *path);
 void erase(char *tr[]);
 
 void delrec(char *tr[]);
+
+void setdirparams(char *tr[], DirParams *params);
+void getdirparams(DirParams *params);
+void dirComando(char *tr[], DirParams *params);
 
 
 

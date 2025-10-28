@@ -43,7 +43,8 @@ int leerEntrada(char nE[], char *tr[], tList *L) {
 // Definir el tipo de la tablaBloq y numBloques antes de la función si no se han declarado
 
 void procesarEntrada(char *tr[], int i, tList *L, bool *fin, struct fichab tablaFicheros[],
-                struct dirab tablaDirectorios[], int *numOpenCommands, int *numeroFicheros, int *numeroDirectorios) {
+                struct dirab tablaDirectorios[], int *numOpenCommands, int *numeroFicheros, int *numeroDirectorios,
+                DirParams *params) {
     if (i > 0) {
         if (strcmp(tr[0], "authors") == 0) authors(tr);
         else if (strcmp(tr[0], "getpid") == 0) pid(tr);
@@ -80,7 +81,7 @@ void procesarEntrada(char *tr[], int i, tList *L, bool *fin, struct fichab tabla
             }
             procesarEntrada(tr, i, L, fin, tablaFicheros, tablaDirectorios,
                             numOpenCommands,
-                            numeroFicheros, numeroDirectorios);
+                            numeroFicheros, numeroDirectorios, params);
 
         } else if (strcmp(tr[0], "open") == 0) Cmd_open(tr, numeroFicheros, tablaFicheros);
         else if (strcmp(tr[0], "close") == 0) Cmd_close(tr, numeroFicheros, tablaFicheros);
@@ -90,7 +91,14 @@ void procesarEntrada(char *tr[], int i, tList *L, bool *fin, struct fichab tabla
         else if (strcmp(tr[0], "delrec") == 0) delrec(tr);
         else if (strcmp(tr[0], "erase") == 0) erase(tr);
         else if (strcmp(tr[0], "writestr") == 0) writestr(tr, numeroFicheros, tablaFicheros);
-        else if (strcmp(tr[0], "seek") == 0) seek(tr, numeroFicheros, tablaFicheros);
+        else if (strcmp(tr[0], "lseek") == 0) seek(tr, numeroFicheros, tablaFicheros);
+        else if (strcmp(tr[0], "setdirparams") == 0)
+            setdirparams(tr, params);
+        else if (strcmp(tr[0], "getdirparams") == 0)
+            getdirparams(params);
+        else if (strcmp(tr[0], "dir") == 0)
+            dirComando(tr, params);
+
         else if (strcmp(tr[0], "exit") == 0 || strcmp(tr[0], "quit") == 0 || strcmp(tr[0], "bye") == 0) {
             *fin = true;
         }
@@ -101,6 +109,8 @@ void procesarEntrada(char *tr[], int i, tList *L, bool *fin, struct fichab tabla
 int main() {
     bool fin = false;
     char *tr[30];
+
+    DirParams parametrosDir = { false, false, false, 0 }; // long=false, link=false, hid=false, norec
 
     struct fichab tablaFicheros[MAX_FICHEROS];
     struct dirab tablaDirectorios[MAX_DIRECTORIOS];
@@ -118,7 +128,7 @@ int main() {
     while (!fin) {
         printPrompt();
         i = leerEntrada(nE, tr, &L);
-        procesarEntrada(tr, i, &L, &fin, tablaFicheros,tablaDirectorios,&numOpenCommands, &numeroFicheros,&numeroDirectorios);
+        procesarEntrada(tr, i, &L, &fin, tablaFicheros,tablaDirectorios,&numOpenCommands, &numeroFicheros,&numeroDirectorios,&parametrosDir);
     }
 
     clearList(&L);

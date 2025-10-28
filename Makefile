@@ -3,11 +3,11 @@ CC = gcc
 CFLAGS = -Wall -Wextra
 
 # Archivos fuente y objeto
-SRCS = p0.c list.c filefunctions.c firstshellfunctions.c
+SRCS = p1.c list.c filefunctions.c firstshellfunctions.c
 OBJS = $(SRCS:.c=.o)
 
 # Nombre del ejecutable
-TARGET = a.out
+TARGET = p1
 
 # Regla principal
 all: $(TARGET)

@@ -398,7 +398,7 @@ void writestr(char *tr[], int *numeroFicheros, struct fichab tablaFicheros[]) {
 
 void seek(char *tr[], int *numeroFicheros, struct fichab tablaFicheros[]) {
     if (tr[1] == NULL || tr[2] == NULL || tr[3] == NULL) {
-        printf("Uso: seek <descriptor> <offset> <set|cur|end>\n");
+        printf("Uso: lseek <descriptor> <offset> <set|cur|end>\n");
         return;
     }
 
