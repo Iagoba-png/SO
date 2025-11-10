@@ -267,7 +267,8 @@ void listarContenido(const char *ruta, DirParams *params, bool listarDirectorio)
             char permisos[12];
             ConvierteModo(st.st_mode, permisos);
             struct tm *tm_info = localtime(&st.st_mtime);
-            printf("%c %02d/%02d/%04d %8ld %s\n",
+            printf("%10s%c %02d/%02d/%04d %8ld %s\n",
+                   permisos,
                    LetraTF(st.st_mode),
                    tm_info->tm_mday,
                    tm_info->tm_mon + 1,

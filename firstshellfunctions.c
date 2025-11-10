@@ -227,7 +227,7 @@ void listarFicherosAbiertos(int numeroFicheros, struct fichab tablaFicheros[]) {
         int modo = tablaFicheros[i].modo; //obtenemos el modo de apertura desde tablaficheros
         if (modo != 0) {
             if (modo & O_RDWR) modos = "O_RDWR";
-            else if (modo & O_RDONLY) modos = "O_RDONLY";
+            else if (modo & O_RDONLY) modos = "O_RDONLY";4w
             else if (modo & O_WRONLY) modos = "O_WRONLY";
             else if (modo & O_APPEND) modos = "O_APPEND";
             else if (modo & O_CREAT) modos = "O_CREAT";
@@ -260,10 +260,10 @@ void parentProcess(int *numOpenCommands, int *numeroFicheros, struct fichab tabl
         int dfStdIn = stdin_fileno; //copia descriptor de archivo
         int dfStdout = stdout_fileno;
         int dfStError = stderror_fileno;
-        anadirFicherosAbiertos("entrada estandar", O_RDWR, dfStdIn, numeroFicheros,
+        anadirFicherosAbiertos("entrada estandar", fcntl(dfStdIn,F_GETFL), dfStdIn, numeroFicheros,
                                tablaFicheros); //se añaden los archivos a la lista
-        anadirFicherosAbiertos("salida estandar", O_RDWR, dfStdout, numeroFicheros, tablaFicheros);
-        anadirFicherosAbiertos("error estandar", O_RDWR, dfStError, numeroFicheros, tablaFicheros);
+        anadirFicherosAbiertos("salida estandar", fcntl(dfStdIn,F_GETFL), dfStdout, numeroFicheros, tablaFicheros);
+        anadirFicherosAbiertos("error estandar", fcntl(dfStdIn,F_GETFL), dfStError, numeroFicheros, tablaFicheros);
         ++*numOpenCommands;
     }
 }
@@ -275,14 +275,14 @@ void Cmd_open(char *tr[], int *numeroFicheros, struct fichab tablaFicheros[]) {
         return;
     } else {
         int mode = 0;
-        if (tr[2] != NULL) {
-            if (strcmp(tr[2], "cr") == 0) mode |= O_CREAT;
-            else if (strcmp(tr[2], "ex") == 0) mode |= O_EXCL;
-            else if (strcmp(tr[2], "ro") == 0) mode |= O_RDONLY;
-            else if (strcmp(tr[2], "wo") == 0) mode |= O_WRONLY;
-            else if (strcmp(tr[2], "rw") == 0) mode |= O_RDWR;
-            else if (strcmp(tr[2], "ap") == 0) mode |= O_APPEND;
-            else if (strcmp(tr[2], "tr") == 0) mode |= O_TRUNC;
+        for (int i = 2; tr[i] != NULL; i++) {
+            if (strcmp(tr[i], "cr") == 0) mode |= O_CREAT;
+            else if (strcmp(tr[i], "ex") == 0) mode |= O_EXCL;
+            else if (strcmp(tr[i], "ro") == 0) mode |= O_RDONLY;
+            else if (strcmp(tr[i], "wo") == 0) mode |= O_WRONLY;
+            else if (strcmp(tr[i], "rw") == 0) mode |= O_RDWR;
+            else if (strcmp(tr[i], "ap") == 0) mode |= O_APPEND;
+            else if (strcmp(tr[i], "tr") == 0) mode |= O_TRUNC;
             else mode = 0;
         }
         int df = open(tr[1], mode, 0777); //abre el archivo en el modo especificado
