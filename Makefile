@@ -1,9 +1,9 @@
 # Compilador y opciones
 CC = gcc
-CFLAGS = -Wall -Wextra
+CFLAGS = -Wall -Werror
 
 # Archivos fuente y objeto
-SRCS = p1.c list.c filefunctions.c firstshellfunctions.c
+SRCS = p1.c list.c filefunctions.c firstshellfunctions.c memfunctions.c
 OBJS = $(SRCS:.c=.o)
 
 # Nombre del ejecutable

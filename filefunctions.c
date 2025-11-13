@@ -23,8 +23,11 @@ void create(char *tr[], int *numerodirectorios, struct dirab tabladirectorios[])
             if (tr[2] == NULL) {
                 perror("Falta nombre archivo");
             } else {
-                if (open(tr[2], O_CREAT, 0666) == -1) { //crea archivo, si no tiene exito muestra error
+                int fd = open(tr[2], O_CREAT | O_WRONLY, 0666);
+                if (fd == -1) { //crea archivo, si no tiene exito muestra error
                     perror("Fichero no creado");
+                } else {
+                    close(fd);
                 }
             }
         } else {

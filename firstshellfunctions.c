@@ -227,7 +227,7 @@ void listarFicherosAbiertos(int numeroFicheros, struct fichab tablaFicheros[]) {
         int modo = tablaFicheros[i].modo; //obtenemos el modo de apertura desde tablaficheros
         if (modo != 0) {
             if (modo & O_RDWR) modos = "O_RDWR";
-            else if (modo & O_RDONLY) modos = "O_RDONLY";4w
+            else if (modo & O_RDONLY) modos = "O_RDONLY";
             else if (modo & O_WRONLY) modos = "O_WRONLY";
             else if (modo & O_APPEND) modos = "O_APPEND";
             else if (modo & O_CREAT) modos = "O_CREAT";
