@@ -498,3 +498,156 @@ void memfill(char *tr[], int *numeroBloques, struct bloqab tablaBloques[]) {
     LlenarMemoria(addr, cont, byte); //llama a funcion para llenar memoria
 
 }
+
+
+void freeAddr(char *tr[], int *numeroBloques, struct bloqab tablaBloques[]) {
+
+    if (tr[1] == NULL) {
+        printf("Uso: free <direccion>\n");
+        return;
+    }
+
+    // Convertir la cadena hexadecimal a un puntero real
+    void *addr = (void *) strtoull(tr[1], NULL, 16);
+
+    for (int i = 0; i < *numeroBloques; i++) {
+
+        if (tablaBloques[i].direccionMemoria == addr) {
+
+            // Liberar según el tipo de bloque
+            if (strcmp(tablaBloques[i].modoMemoria, "malloc") == 0)
+                free(tablaBloques[i].direccionMemoria);
+
+            else if (strcmp(tablaBloques[i].modoMemoria, "shared") == 0)
+                shmdt(tablaBloques[i].direccionMemoria);
+
+            else if (strcmp(tablaBloques[i].modoMemoria, "mmap") == 0)
+                munmap(tablaBloques[i].direccionMemoria, tablaBloques[i].tamano);
+
+            // Compactar tabla
+            for (int j = i; j < *numeroBloques - 1; j++)
+                tablaBloques[j] = tablaBloques[j + 1];
+
+            (*numeroBloques)--;
+
+            return;
+        }
+    }
+
+    printf("No hay ningún bloque en la dirección %s\n", tr[1]);
+}
+
+
+
+
+/*convierte cadena de caracateres en puntero*/
+void *cadtop(char *p) {
+    return (void *) strtoul(p, NULL, 16);
+}
+
+ssize_t LeerFichero(char *f, void *p, size_t cont) {
+    struct stat s;
+    ssize_t n;
+    int df, aux;
+
+    if (stat(f, &s) == -1 || (df = open(f, O_RDONLY)) == -1)
+        return -1;
+    if (cont == -1)   /* si pasamos -1 como bytes a leer lo leemos entero*/
+        cont = s.st_size;
+    if ((n = read(df, p, cont)) == -1) {
+        aux = errno;
+        close(df);
+        errno = aux;
+        return -1;
+    }
+    close(df);
+    return n;
+}
+
+/*lee fichero*/
+void readd(char *ar[]) {
+    void *p;
+    size_t cont = -1; /* -1 indica leer el fichero completo*/
+    ssize_t n;
+
+    if (ar[1] == NULL || ar[2] == NULL) {
+        printf("Faltan parametros\n");
+        return;
+    }
+
+    struct stat s;
+    if (stat(ar[1], &s) == -1) { //obtiene informacion del archivo
+        perror("Error al obtener información del archivo");
+        return;
+    }
+
+    p = cadtop(ar[2]); //convierte cadena de caracteres en puntero
+
+    if (ar[3] != NULL) { //si ar[3] no es nulo
+        cont = (size_t) atoll(ar[3]);
+        if (cont > s.st_size) { //si cont es mayor que el tamaño del archivo
+            cont = s.st_size; //cont es igual al tamaño del archivo
+        }
+    } else {
+        cont = s.st_size; //cont es igual al tamaño del archivo
+    }
+    if ((n = LeerFichero(ar[1], p, cont)) == -1)
+        perror("Imposible leer fichero");
+    else
+        printf("Leidos %lld bytes de %s en %p\n", (long long) n, ar[0], p);
+}
+
+ssize_t EscribirFichero(char *f, void *p, size_t cont, int overwrite) {
+    ssize_t n;
+    int df, aux, flags = O_CREAT | O_EXCL | O_WRONLY;
+
+    if (overwrite)
+        flags = O_CREAT | O_WRONLY | O_TRUNC;
+
+    if ((df = open(f, flags, 0777)) == -1)
+        return -1;
+
+    if ((n = write(df, p, cont)) == -1) {
+        aux = errno;
+        close(df);
+        errno = aux;
+        return -1;
+    }
+    close(df);
+    return n;
+}
+
+/*escribe fichero*/
+void writee(char *ar[]) {
+    void *p;
+    size_t cont = -1;
+    int overwrite = 0;
+    if (ar[1] == NULL || ar[2] == NULL || ar[3] == NULL) { //si ar[1], ar[2] o ar[3] son nulos
+        printf("Faltan parametros\n");
+        return;
+    }
+
+    if (strcmp(ar[1], "-o") == 0) { //si ar[1] es -o
+        if (ar[4] == NULL) {
+            printf("Faltan parametros\n");
+            return;
+        }
+        overwrite = 1; //overwrite es 1
+        ar++; //suma uno a ar
+    }
+    p = cadtop(ar[2]);
+
+    if (ar[3] != NULL) { //si ar[3] no es nulo
+        cont = (size_t) atoll(ar[3]); //cont es igual a ar[3]
+    }
+
+    if (EscribirFichero(ar[1], p, cont, overwrite) ==
+        -1) { //llama a funcion para escribir
+        perror("Imposible escribir en el fichero");
+    } else {
+        printf("Escritos %zu bytes desde %p al archivo %s\n", cont, p, ar[1]);
+    }
+}
+
+
+
