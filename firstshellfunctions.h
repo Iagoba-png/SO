@@ -44,6 +44,10 @@ void infosys(char *tr[]);
 
 void writestr(char *tr[], int *numeroFicheros, struct fichab tablaFicheros[]);
 
+void readfd(char *ar[], int numeroFicheros, struct fichab tablaFicheros[]);
+
+void writefd(char *ar[], int numeroFicheros, struct fichab tablaFicheros[]);
+
 void help(char *tr[]);
 
 void hist(char *tr[], tList *L);

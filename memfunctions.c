@@ -539,12 +539,6 @@ void freeAddr(char *tr[], int *numeroBloques, struct bloqab tablaBloques[]) {
 
 
 
-
-/*convierte cadena de caracateres en puntero*/
-void *cadtop(char *p) {
-    return (void *) strtoul(p, NULL, 16);
-}
-
 ssize_t LeerFichero(char *f, void *p, size_t cont) {
     struct stat s;
     ssize_t n;
@@ -648,6 +642,7 @@ void writee(char *ar[]) {
         printf("Escritos %zu bytes desde %p al archivo %s\n", cont, p, ar[1]);
     }
 }
+
 
 
 

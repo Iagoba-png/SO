@@ -98,8 +98,11 @@ void procesarEntrada(char *tr[], int i, tList *L, bool *fin, struct fichab tabla
         else if (strcmp(tr[0], "getdirparams") == 0) getdirparams(params);
         else if (strcmp(tr[0], "dir") == 0) dirComando(tr, params);
         else if (strcmp(tr[0], "malloc") == 0) mallocc(tr, numeroBloques, tablaBloques);
-        else if (strcmp(tr[0], "read") == 0) readd(tr);
-        else if (strcmp(tr[0], "write") == 0) writee(tr);
+        else if (strcmp(tr[0], "readfile") == 0) readd(tr);
+        else if (strcmp(tr[0], "free") == 0) freeAddr(tr, numeroBloques, tablaBloques);
+        else if (strcmp(tr[0], "writefile") == 0) writee(tr);
+        else if (strcmp(tr[0], "read") == 0) readfd(tr, *numeroFicheros, tablaFicheros);
+        else if (strcmp(tr[0], "write") == 0) writefd(tr, *numeroFicheros, tablaFicheros);
         else if (strcmp(tr[0], "mmap") == 0) CmdMmap(tr, numeroBloques, tablaBloques);
         else if (strcmp(tr[0], "memdump") == 0) memdump(tr);
         else if (strcmp(tr[0], "recurse") == 0)
