@@ -9,6 +9,7 @@
 #include "list.h"
 #include "filefunctions.h"
 #include "memfunctions.h"
+#include "processesfunctions.h"
 
 #define MAX_INPUT_LENGTH 200
 
@@ -112,6 +113,7 @@ void procesarEntrada(char *tr[], int i, tList *L, bool *fin, struct fichab tabla
         else if (strcmp(tr[0], "shared") == 0) SharedCreate(tr, numeroBloques, tablaBloques);
         else if (strcmp(tr[0], "memfill") == 0) memfill(tr, numeroBloques, tablaBloques);
         else if (strcmp(tr[0], "mem") == 0) mem(tr, numeroBloques, tablaBloques);
+        else if (strcmp(tr[0], "uid") == 0) uid(tr);
 
 
         else if (strcmp(tr[0], "exit") == 0 || strcmp(tr[0], "quit") == 0 || strcmp(tr[0], "bye") == 0) {
