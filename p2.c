@@ -45,8 +45,8 @@ int leerEntrada(char nE[], char *tr[], tList *L) {
 // Definir el tipo de la tablaBloq y numBloques antes de la función si no se han declarado
 
 void procesarEntrada(char *tr[], int i, tList *L, bool *fin, struct fichab tablaFicheros[],
-                struct dirab tablaDirectorios[], struct bloqab tablaBloques[], int *numOpenCommands,
-                int *numeroFicheros, int *numeroDirectorios, int *numeroBloques,
+                struct dirab tablaDirectorios[], struct bloqab tablaBloques[], struct jobsab tablaProcesos[], int *numOpenCommands,
+                int *numeroFicheros, int *numeroDirectorios, int *numeroBloques, int *numeroJobs,
                 DirParams *params) {
     if (i > 0) {
         if (strcmp(tr[0], "authors") == 0) authors(tr);
@@ -82,9 +82,9 @@ void procesarEntrada(char *tr[], int i, tList *L, bool *fin, struct fichab tabla
                     return;
                 }
             }
-            procesarEntrada(tr, i, L, fin, tablaFicheros, tablaDirectorios, tablaBloques,
+            procesarEntrada(tr, i, L, fin, tablaFicheros, tablaDirectorios, tablaBloques, tablaProcesos,
                             numOpenCommands,
-                            numeroFicheros, numeroDirectorios, numeroBloques, params);
+                            numeroFicheros, numeroDirectorios, numeroBloques, numeroJobs, params);
 
         } else if (strcmp(tr[0], "open") == 0) Cmd_open(tr, numeroFicheros, tablaFicheros);
         else if (strcmp(tr[0], "close") == 0) Cmd_close(tr, numeroFicheros, tablaFicheros);
@@ -114,11 +114,28 @@ void procesarEntrada(char *tr[], int i, tList *L, bool *fin, struct fichab tabla
         else if (strcmp(tr[0], "memfill") == 0) memfill(tr, numeroBloques, tablaBloques);
         else if (strcmp(tr[0], "mem") == 0) mem(tr, numeroBloques, tablaBloques);
         else if (strcmp(tr[0], "uid") == 0) uid(tr);
+        else if (strcmp(tr[0], "job") == 0) job(tr, tablaProcesos, numeroJobs);
+        else if (strcmp(tr[0], "jobs") == 0) jobs(tablaProcesos, numeroJobs);
+        else if (strcmp(tr[0], "envvar") == 0) {
+            extern char **environ;
+            envvar(tr, environ);
+        }
+        else if (strcmp(tr[0], "showenv") == 0) {
+            extern char **environ;
+            showenv(tr, environ);
+        } else if (strcmp(tr[0], "exec") == 0) exec(tr, i);
+        else if (strcmp(tr[0], "fork") == 0) Cmd_fork(tr, numeroJobs);
+        else if (strcmp(tr[0], "deljobs") == 0) deljobs(tr, tablaProcesos, numeroJobs);
 
 
         else if (strcmp(tr[0], "exit") == 0 || strcmp(tr[0], "quit") == 0 || strcmp(tr[0], "bye") == 0) {
             liberarMemoria(*numeroBloques, tablaBloques);
             *fin = true;
+        } else if (strcmp(tr[i - 1], "&") == 0) {
+            tr[i - 1] = NULL;
+            comandosExternos(tr, true, tablaProcesos, numeroJobs);
+        } else {
+            comandosExternos(tr, false, tablaProcesos, numeroJobs);
         }
     }
 }
@@ -133,12 +150,14 @@ int main() {
     struct fichab tablaFicheros[MAX_FICHEROS];
     struct dirab tablaDirectorios[MAX_DIRECTORIOS];
     struct bloqab tablaBloques[MAX_BLOQUES];
+    struct jobsab tablaProcesos[MAX_PROCESOS];
 
 
     int numOpenCommands = 0;
     int numeroFicheros = 0;
     int numeroDirectorios = 0;
     int numeroBloques = 0;
+    int numeroJobs = 0;
     int i;
 
     char nE[MAX_INPUT_LENGTH];
@@ -148,8 +167,8 @@ int main() {
     while (!fin) {
         printPrompt();
         i = leerEntrada(nE, tr, &L);
-        procesarEntrada(tr, i, &L, &fin, tablaFicheros,tablaDirectorios, tablaBloques,&numOpenCommands, &numeroFicheros,
-            &numeroDirectorios, &numeroBloques, &parametrosDir);
+        procesarEntrada(tr, i, &L, &fin, tablaFicheros,tablaDirectorios, tablaBloques, tablaProcesos,&numOpenCommands, &numeroFicheros,
+            &numeroDirectorios, &numeroBloques, &numeroJobs, &parametrosDir);
     }
 
     clearList(&L);

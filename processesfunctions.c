@@ -48,6 +48,166 @@ void uid(char *tr[]) {
     } else printf("Uso: uid [-get|-set] [-l] [id]\n");
 }
 
+int BuscarVariable(char *var, char *e[]) {
+    int pos = 0;
+    char aux[MAXVAR];
+
+    strcpy(aux, var);
+    strcat(aux, "=");
+
+    while (e[pos] != NULL) {
+        if (!strncmp(e[pos], aux, strlen(aux)))
+            return pos;
+        pos++;
+    }
+    errno = ENOENT;
+    return -1;
+}
+
+int CambiarVariable(char *var, char *valor, char *e[]) {
+    int pos;
+    char *aux;
+
+    if ((pos = BuscarVariable(var, e)) == -1)
+        return -1;
+
+    aux = malloc(strlen(var) + strlen(valor) + 2);
+    if (aux == NULL)
+        return -1;
+
+    sprintf(aux, "%s=%s", var, valor);
+    e[pos] = aux;
+    return pos;
+}
+
+
+
+void envvar_show(char *var, char *envp[]) {
+    extern char **environ;
+
+    int pos1 = BuscarVariable(var, envp);
+    int pos2 = BuscarVariable(var, environ);
+    char *val = getenv(var);
+
+    if (pos1 == -1) {
+        printf("Variable %s no encontrada\n", var);
+        return;
+    }
+
+    printf("Acceso por envp     : %s (%p) @%p\n",
+           envp[pos1], envp[pos1], &envp[pos1]);
+
+    printf("Acceso por environ  : %s (%p) @%p\n",
+           environ[pos2], environ[pos2], &environ[pos2]);
+
+    printf("Acceso por getenv   : %s (%p)\n",
+           val, val);
+}
+
+
+void envvar_change(char *mode, char *var, char *value, char *envp[]) {
+    extern char **environ;
+
+    if (strcmp(mode, "-a") == 0) {             // acceso por envp[]
+        int pos = BuscarVariable(var, envp);
+        if (pos == -1) {
+            printf("Variable %s no encontrada\n", var);
+            return;
+        }
+        if (CambiarVariable(var, value, envp) == -1)
+            perror("Error al cambiar variable");
+
+    } else if (strcmp(mode, "-e") == 0) {      // acceso por environ
+        int pos = BuscarVariable(var, environ);
+        if (pos == -1) {
+            printf("Variable %s no encontrada\n", var);
+            return;
+        }
+        if (setenv(var, value, 1) != 0)
+            perror("Error con setenv");
+
+    } else if (strcmp(mode, "-p") == 0) {      // putenv (crea si no existe)
+        char *new = malloc(strlen(var) + strlen(value) + 2);
+        sprintf(new, "%s=%s", var, value);
+        if (putenv(new) != 0)
+            perror("putenv");
+
+    } else {
+        printf("Uso: envvar -change [-a|-e|-p] var val\n");
+    }
+}
+
+
+
+void envvar_subs(char *mode, char *var1, char *var2, char *value, char *envp[]) {
+    extern char **environ;
+    int pos_old, pos_new;
+
+    if (strcmp(mode, "-a") == 0) {
+        pos_old = BuscarVariable(var1, envp);
+        pos_new = BuscarVariable(var2, envp);
+
+        if (pos_old == -1) {
+            printf("Variable %s no existe\n", var1);
+            return;
+        }
+        if (pos_new != -1) {
+            printf("Variable %s ya existe\n", var2);
+            return;
+        }
+
+        char *new = malloc(strlen(var2) + strlen(value) + 2);
+        sprintf(new, "%s=%s", var2, value);
+        envp[pos_old] = new;
+
+    } else if (strcmp(mode, "-e") == 0) {
+        pos_old = BuscarVariable(var1, environ);
+        pos_new = BuscarVariable(var2, environ);
+
+        if (pos_old == -1) {
+            printf("Variable %s no existe\n", var1);
+            return;
+        }
+        if (pos_new != -1) {
+            printf("Variable %s ya existe\n", var2);
+            return;
+        }
+
+        char *new = malloc(strlen(var2) + strlen(value) + 2);
+        sprintf(new, "%s=%s", var2, value);
+        environ[pos_old] = new;
+
+    } else {
+        printf("Uso: envvar -subs [-a|-e] var1 var2 valor\n");
+    }
+}
+
+
+void envvar(char *tr[], char *envp[]) {
+    if (tr[1] == NULL) {
+        printf("Uso: envvar [-show|-change|-subs] args...\n");
+        return;
+    }
+
+    if (strcmp(tr[1], "-show") == 0 && tr[2] != NULL) {
+        envvar_show(tr[2], envp);
+        return;
+    }
+
+    if (strcmp(tr[1], "-change") == 0 && tr[2] && tr[3] && tr[4]) {
+        envvar_change(tr[2], tr[3], tr[4], envp);
+        return;
+    }
+
+    if (strcmp(tr[1], "-subs") == 0 && tr[2] && tr[3] && tr[4] && tr[5]) {
+        envvar_subs(tr[2], tr[3], tr[4], tr[5], envp);
+        return;
+    }
+
+    printf("Uso incorrecto del comando envvar\n");
+}
+
+
 
 
 /*muestra variables de entorno*/
@@ -79,37 +239,80 @@ void showenv(char *tr[], char *e[]) {
 }
 
 /*ejecuta comandos externos*/
-void comandosExternos(char *tr[], bool segundoPlano, struct jobsab tablaProcesos[], int *numeroJobs) {
-    pid_t pid = fork(); //crear un proceso hijo
+/* ejecuta comandos externos según PROGSPEC */
+void comandosExternos(char *tr[], bool segundoPlano,
+                      struct jobsab tablaProcesos[], int *numeroJobs)
+{
+    int prioridad = -1;
+    int nargs = 0;
 
-    if (pid < 0) { //si no se ha podido crear el proceso
+    /* 1. Contar argumentos reales */
+    while (tr[nargs] != NULL)
+        nargs++;
+
+    /* 2. Detectar si el último token es "&" */
+    if (nargs > 0 && strcmp(tr[nargs - 1], "&") == 0) {
+        segundoPlano = true;
+        tr[nargs - 1] = NULL;     // eliminar &
+        nargs--;
+    }
+
+    /* 3. Detectar si el último token es @N */
+    if (nargs > 0 && tr[nargs - 1][0] == '@') {
+        prioridad = atoi(tr[nargs - 1] + 1);  // convertir tras '@'
+        tr[nargs - 1] = NULL;                 // eliminar @N
+        nargs--;
+    }
+
+    /* 4. Crear proceso */
+    pid_t pid = fork();
+
+    if (pid < 0) {
         perror("Error al crear el proceso");
         return;
-    } else if (pid == 0) { //si es el proceso hijo
-        execvp(tr[0], tr); // ejecutar el comando
-        perror("No ejecutado");
-        exit(EXIT_FAILURE); //sale si no se ha podido ejecutar
-    } else {
-        if (!segundoPlano) { //si no es segundo plano
-            int status;
-            waitpid(pid, &status, 0);  //espera a que el proceso hijo termine
-        } else {
-            tablaProcesos[*numeroJobs].time = time(NULL); //almacena valores en la tabla de procesos
-            tablaProcesos[*numeroJobs].pid = pid;
-            tablaProcesos[*numeroJobs].uid = getuid();
-            tablaProcesos[*numeroJobs].out = 0;
-            strncpy(tablaProcesos[*numeroJobs].state, "ACTIVO", sizeof(tablaProcesos[*numeroJobs].state) - 1);
-            char concatenatedArgs[MAX_INPUT_LENGTH_2] = "";
-            for (int i = 0; i < 5 && tr[i] != NULL; ++i) {
-                strcat(concatenatedArgs, tr[i]);
-                strcat(concatenatedArgs, " ");
-            }
-            // Almacenar la cadena concatenada en tablaProcesos[*numeroJobs].process
-            strncpy(tablaProcesos[*numeroJobs].process, concatenatedArgs,
-                    sizeof(tablaProcesos[*numeroJobs].process) - 1);
-            (*numeroJobs)++; //aumenta el numero de procesos
-            if (tr[1] != NULL) return;
+    }
+
+    /* ---------- HIJO ---------- */
+    if (pid == 0) {
+
+        /* Aplicar prioridad si se especificó */
+        if (prioridad != -1) {
+            if (setpriority(PRIO_PROCESS, 0, prioridad) == -1)
+                perror("Error al cambiar prioridad");
         }
+
+        execvp(tr[0], tr);
+        perror("No ejecutado");
+        exit(EXIT_FAILURE);
+    }
+
+    /* ---------- PADRE ---------- */
+
+    if (!segundoPlano) {           /* FOREGROUND */
+        int status;
+        waitpid(pid, &status, 0);
+    } else {                       /* BACKGROUND */
+
+        /* Rellenar entrada en tablaProcesos */
+        tablaProcesos[*numeroJobs].time = time(NULL);
+        tablaProcesos[*numeroJobs].pid = pid;
+        tablaProcesos[*numeroJobs].uid = getuid();
+        tablaProcesos[*numeroJobs].out = 0;
+        strncpy(tablaProcesos[*numeroJobs].state, "ACTIVE",
+                sizeof(tablaProcesos[*numeroJobs].state) - 1);
+
+        /* Guardar la línea de comando original */
+        char concatenatedArgs[256] = "";
+        for (int i = 0; tr[i] != NULL; i++) {
+            strcat(concatenatedArgs, tr[i]);
+            strcat(concatenatedArgs, " ");
+        }
+
+        strncpy(tablaProcesos[*numeroJobs].process,
+                concatenatedArgs,
+                sizeof(tablaProcesos[*numeroJobs].process) - 1);
+
+        (*numeroJobs)++;   // aumentar lista de procesos
     }
 }
 
@@ -117,29 +320,55 @@ void comandosExternos(char *tr[], bool segundoPlano, struct jobsab tablaProcesos
 
 
 
-/*ejecuta un programa sin crear un proceso*/
+
+/* Ejecuta un programa SIN crear proceso (exec() real) */
 void exec(char *tr[], int i) {
+
     if (tr[1] == NULL) return;
 
-    int contadorTR = i;
+    int prioridad = -1;
 
-    if (strcmp(tr[i - 1], "@pri") == 0 && tr[i] == NULL) { //si tr[i-1] es @pri y tr[i] es nulo
-        contadorTR -= 1;
+    /* ---- CONTAR ARGUMENTOS ---- */
+    int nargs = 0;
+    while (tr[nargs] != NULL)
+        nargs++;
+
+    /* ---- ELIMINAR & SI APARECE ---- */
+    if (nargs > 0 && strcmp(tr[nargs - 1], "&") == 0) {
+        tr[nargs - 1] = NULL;
+        nargs--;
     }
 
-    char *args[30];
-    int indiceARGS = 0;
-    for (int j = 1; j < contadorTR; j++) {  //recorre los argumentos
-        if (tr[j] != NULL) {  //si el argumento no es nulo
-            args[indiceARGS++] = tr[j]; //almacena el argumento
-        }
+    /* ---- DETECTAR PRIORIDAD @N ---- */
+    if (nargs > 0 && tr[nargs - 1][0] == '@') {
+        prioridad = atoi(tr[nargs - 1] + 1);
+        tr[nargs - 1] = NULL;   // eliminar @N del array
+        nargs--;
     }
-    args[indiceARGS] = NULL; //el ultimo argumento es nulo
 
-    execvp(tr[1], args); //ejecuta el comando
+    /* ---- CREAR ARRAY DE ARGUMENTOS (sin "exec") ---- */
+    char *args[64];
+    int j = 0;
 
+    // mover de tr[1] en adelante
+    for (int k = 1; tr[k] != NULL; k++)
+        args[j++] = tr[k];
+
+    args[j] = NULL;
+
+    /* ---- CAMBIAR PRIORIDAD SI NECESARIO ---- */
+    if (prioridad != -1) {
+        if (setpriority(PRIO_PROCESS, 0, prioridad) == -1)
+            perror("setpriority");
+    }
+
+    /* ---- EJECUTAR SIN FORK ---- */
+    execvp(args[0], args);
+
+    /* Sólo llegamos aquí si falla execvp */
     perror("execvp");
 }
+
 
 void Cmd_fork(char *tr[], int *numeroJobs) {
     pid_t pid;

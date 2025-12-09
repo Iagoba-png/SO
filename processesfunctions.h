@@ -39,6 +39,8 @@ struct jobsab{
 
 void uid(char *tr[]);
 
+void envvar(char *tr[], char *envp[]);
+
 void showenv(char *tr[],char *e[]);
 
 void comandosExternos(char *tr[], bool segundoPlano, struct jobsab tablaProcesos[], int *numeroJobs);
