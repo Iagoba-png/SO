@@ -54,7 +54,12 @@ void writee(char *tr[]);
 
 void memdump(char *tr[]);
 
+void freeAddr(char *tr[], int *numeroBloques, struct bloqab tablaBloques[]) ;
+
 void recurse(int n);
+
+void *cadtop(char *p);
+
 
 void SharedCreate(char *tr[], int *numeroBloques, struct bloqab tablaBloques[]);
 

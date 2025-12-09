@@ -437,3 +437,74 @@ void seek(char *tr[], int *numeroFicheros, struct fichab tablaFicheros[]) {
         printf("Nuevo offset en %s: %ld\n", tablaFicheros[indice].nombre, (long)nueva_pos);
     }
 }
+
+
+
+/*convierte cadena de caracateres en puntero*/
+void *cadtop(char *p) {
+    return (void *) strtoul(p, NULL, 16);
+}
+
+
+void readfd(char *ar[], int numeroFicheros, struct fichab tablaFicheros[]) {
+    if (ar[1] == NULL || ar[2] == NULL || ar[3] == NULL) {
+        printf("Uso: read df addr cont\n");
+        return;
+    }
+
+    int df = atoi(ar[1]);
+    void *addr = cadtop(ar[2]);
+    size_t cont = atoll(ar[3]);
+
+    // Buscar el descriptor en la tabla
+    int i;
+    for (i = 0; i < numeroFicheros; i++) {
+        if (tablaFicheros[i].descrip == df)
+            break;
+    }
+    if (i == numeroFicheros) {
+        printf("Descriptor %d no está abierto\n", df);
+        return;
+    }
+
+    ssize_t n = read(df, addr, cont);
+
+    if (n == -1)
+        perror("Error en read");
+    else
+        printf("Leidos %lld bytes desde fd %d en %p\n",
+               (long long)n, df, addr);
+}
+
+
+
+void writefd(char *ar[], int numeroFicheros, struct fichab tablaFicheros[]) {
+    if (ar[1] == NULL || ar[2] == NULL || ar[3] == NULL) {
+        printf("Uso: write df addr cont\n");
+        return;
+    }
+
+    int df = atoi(ar[1]);
+    void *addr = cadtop(ar[2]);
+    size_t cont = atoll(ar[3]);
+
+    // Comprobar que df está abierto
+    int i;
+    for (i = 0; i < numeroFicheros; i++) {
+        if (tablaFicheros[i].descrip == df)
+            break;
+    }
+    if (i == numeroFicheros) {
+        printf("Descriptor %d no está abierto\n", df);
+        return;
+    }
+
+    ssize_t n = write(df, addr, cont);
+
+    if (n == -1)
+        perror("Error en write");
+    else
+        printf("Escritos %lld bytes a fd %d desde %p\n",
+               (long long)n, df, addr);
+}
+
