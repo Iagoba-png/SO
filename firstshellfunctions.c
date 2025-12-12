@@ -119,6 +119,15 @@ void help(char *tr[]) {
             {"exit",     "      Finalizacion ejecucion shell"},
             {"quit",     "      Finalización ejecución shell"},
             {"bye",      "       Finalización ejecución shell"},
+            {"uid", "[-get|-set (-l) id]    Cambia la credencial efectiva (-l para login). Id es el id de usuario o el logginname en caso de -l"},
+            {"envvar",  "[-show v1|-change (-a/-e/-p) v val]    Muestra el valor y la dirección de la variable de entorno v1 o"},
+            {"showenv", "[-environ|-addr]       Muestra el entorno del proceso a través del tercer argumento del main. -environ para que lo muestre por la variable char **environ, -addr para que muestre su dirección de memoria y su contenido"},
+            {"fork",    "Hace la llamada del sistema 'fork' y espera a que el proceso hijo termine"},
+            {"exec",    "Ejecuta el proceso descrito por progspec en 'exec progspec'(ver help progspec) sin crear un proceso nuevo"},
+            {"progspec",    "executablefile [arg1 arg2...][@pri][&]    nombre del fichero a ser ejecutado|argumentos pasados al ejecutable|prioridad|ejecución en segundo plano, añadido a la lista de estos"},
+            {"jobs", "Muestra los procesos en segundo plano"},
+            {"deljobs", "[-term|-sig]  Elimina procesos en segundo plano. -term para eliminar los que terminaron normal; -sig para eliminar los que terminaron con una señal"}
+
 
     };
     if (tr[1] == NULL) {
