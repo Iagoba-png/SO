@@ -4,7 +4,9 @@
 
 #include "processesfunctions.h"
 
-/*muestra o cambia credenciales*/
+
+
+/*muestra o cambia credenciales  PracticaSO3*/
 void uid(char *tr[]) {
     if (tr[1] == NULL || strcmp(tr[1], "-get") == 0) { //si tr[1] es nulo o -get
         uid_t credencialReal = getuid(); //obtiene el id de usuario real
@@ -105,6 +107,12 @@ void envvar_show(char *var, char *envp[]) {
 }
 
 
+#define MAX_ENV_ALLOC 100
+
+static char *env_allocated[MAX_ENV_ALLOC];
+static int env_count = 0;
+
+
 void envvar_change(char *mode, char *var, char *value, char *envp[]) {
     extern char **environ;
 
@@ -129,13 +137,27 @@ void envvar_change(char *mode, char *var, char *value, char *envp[]) {
     } else if (strcmp(mode, "-p") == 0) {      // putenv (crea si no existe)
         char *new = malloc(strlen(var) + strlen(value) + 2);
         sprintf(new, "%s=%s", var, value);
-        if (putenv(new) != 0)
+        if (putenv(new) != 0) {
             perror("putenv");
+            free(new);
+            return;
+        }
+        env_allocated[env_count++] = new;
 
     } else {
         printf("Uso: envvar -change [-a|-e|-p] var val\n");
     }
+
+
 }
+
+void free_env_allocated(void) {
+    for (int i = 0; i < env_count; i++) {
+        free(env_allocated[i]);
+    }
+    env_count = 0;
+}
+
 
 
 
@@ -328,7 +350,7 @@ void exec(char *tr[], int i) {
 
     int prioridad = -1;
 
-    /* ---- CONTAR ARGUMENTOS ---- */
+    /* contar argumentos */
     int nargs = 0;
     while (tr[nargs] != NULL)
         nargs++;
@@ -339,14 +361,14 @@ void exec(char *tr[], int i) {
         nargs--;
     }
 
-    /* ---- DETECTAR PRIORIDAD @N ---- */
+    /* -detectar prioridad */
     if (nargs > 0 && tr[nargs - 1][0] == '@') {
         prioridad = atoi(tr[nargs - 1] + 1);
         tr[nargs - 1] = NULL;   // eliminar @N del array
         nargs--;
     }
 
-    /* ---- CREAR ARRAY DE ARGUMENTOS (sin "exec") ---- */
+    /* array argumentos */
     char *args[64];
     int j = 0;
 
@@ -356,13 +378,13 @@ void exec(char *tr[], int i) {
 
     args[j] = NULL;
 
-    /* ---- CAMBIAR PRIORIDAD SI NECESARIO ---- */
+    /*cambio prioridad */
     if (prioridad != -1) {
         if (setpriority(PRIO_PROCESS, 0, prioridad) == -1)
             perror("setpriority");
     }
 
-    /* ---- EJECUTAR SIN FORK ---- */
+    /* SIN FORK */
     execvp(args[0], args);
 
     /* Sólo llegamos aquí si falla execvp */

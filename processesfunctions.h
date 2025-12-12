@@ -27,6 +27,8 @@
 #define MAX_INPUT_LENGTH_2 200
 
 
+
+
 struct jobsab{
     int pid;
     int uid;
@@ -40,6 +42,8 @@ struct jobsab{
 void uid(char *tr[]);
 
 void envvar(char *tr[], char *envp[]);
+
+void free_env_allocated(void);
 
 void showenv(char *tr[],char *e[]);
 

@@ -130,6 +130,7 @@ void procesarEntrada(char *tr[], int i, tList *L, bool *fin, struct fichab tabla
 
         else if (strcmp(tr[0], "exit") == 0 || strcmp(tr[0], "quit") == 0 || strcmp(tr[0], "bye") == 0) {
             liberarMemoria(*numeroBloques, tablaBloques);
+            free_env_allocated();
             *fin = true;
         } else if (strcmp(tr[i - 1], "&") == 0) {
             tr[i - 1] = NULL;
